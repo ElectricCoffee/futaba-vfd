@@ -1,0 +1,7 @@
+[package]
+name = "futaba-vfd"
+version = "0.1.0"
+authors = ["Niko Lepka <slench102+git@gmail.com>"]
+
+[dependencies]
+sysfs_gpio = "0.5"
