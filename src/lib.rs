@@ -1,6 +1,5 @@
 mod futaba_vfd {
     extern crate sysfs_gpio;
-    use sysfs_gpio as gpio;
     use std::thread::sleep;
     use std::time::Duration;
 
@@ -10,30 +9,30 @@ mod futaba_vfd {
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct FutabaVFD {
-        clock_pin: gpio::Pin,
-        data_pin: gpio::Pin,
-        strobe_pin: gpio::Pin,
+        clock_pin: sysfs_gpio::Pin,
+        data_pin: sysfs_gpio::Pin,
+        strobe_pin: sysfs_gpio::Pin,
         column_count: u8,
         intensity: u8,
     }
 
     impl FutabaVFD {
         pub fn new(clock: u64, data: u64, strobe: u64, column_count: u8, intensity: u8) -> FutabaVFD {
-            let clock_pin = gpio::Pin::new(clock);
-            let data_pin = gpio::Pin::new(data);
-            let strobe_pin = gpio::Pin::new(strobe)
+            let clock_pin = sysfs_gpio::Pin::new(clock);
+            let data_pin = sysfs_gpio::Pin::new(data);
+            let strobe_pin = sysfs_gpio::Pin::new(strobe); 
             FutabaVFD { clock_pin, data_pin, strobe_pin, column_count, intensity }
         }
 
         // sets up all the pins and marks them as outputs
-        pub fn begin(&self) -> gpio::Result<()> {
+        pub fn begin(&self) -> sysfs_gpio::Result<()> {
             self.clock_pin.export()?;
             self.data_pin.export()?;
             self.strobe_pin.export()?;
 
-            self.clock_pin.set_direction(gpio::Direction::Out)?;
-            self.data_pin.set_direction(gpio::Direction::Out)?;
-            self.strobe_pin.set_direction(gpio::Direction::Out)?;
+            self.clock_pin.set_direction(sysfs_gpio::Direction::Out)?;
+            self.data_pin.set_direction(sysfs_gpio::Direction::Out)?;
+            self.strobe_pin.set_direction(sysfs_gpio::Direction::Out)?;
 
             delay(500);
             self.strobe()?;
@@ -44,7 +43,7 @@ mod futaba_vfd {
         }
 
         // unexports all the pins
-        pub fn end(&self) -> gpio::Result<()> {
+        pub fn end(&self) -> sysfs_gpio::Result<()> {
             self.clock_pin.unexport()?;
             self.data_pin.unexport()?;
             self.strobe_pin.unexport()?;
@@ -53,7 +52,7 @@ mod futaba_vfd {
 
         // Lets the user run the display within a closure, rather than having to
         // remember to begin and end the display.
-        pub fn with_beginning<F: FnOnce() -> Result<()>>(&self, closure: F) -> Result<()> {
+        pub fn with_beginning<F: FnOnce() -> sysfs_gpio::Result<()>>(&self, closure: F) -> sysfs_gpio::Result<()> {
             self.begin()?;
             match closure() {
                 Ok(()) => {
@@ -67,34 +66,34 @@ mod futaba_vfd {
             }
         }
 
-        pub fn clear(&self) -> gpio::Result<()> {
+        pub fn clear(&self) -> sysfs_gpio::Result<()> {
             self.send(CLEAR_DISPLAY)
         }
 
-        pub fn home(&self) -> gpio::Result<()> {
+        pub fn home(&self) -> sysfs_gpio::Result<()> {
             self.set_cursor(0, 0)
         }
 
-        pub fn set_cursor(&self, col: u8, row: u8) -> gpio::Result<()> {
+        pub fn set_cursor(&self, col: u8, row: u8) -> sysfs_gpio::Result<()> {
             self.send(SET_CURSOR)?;
             self.send(row * self.column_count + col + 1)
         }
 
-        pub fn send(&self, data: u8) -> gpio::Result<()> {
+        pub fn send(&self, data: u8) -> sysfs_gpio::Result<()> {
             let mut mask: u8 = 0x80;
             for i in 0 .. 8 {
                 self.clock_pin.set_value(1)?;
                 delay_micros(15);
                 self.data_pin.set_value(!!(data & mask))?;
                 delay_micros(5);
-                self.clock_pin::set_value(0)?;
+                self.clock_pin.set_value(0)?;
 
                 mask = mask >> 1;
             }
             Ok(())
         }
 
-        pub fn strobe(&self) -> gpio::Result<()> {
+        pub fn strobe(&self) -> sysfs_gpio::Result<()> {
             self.clock_pin.set_value(1)?;
             self.data_pin.set_value(1)?;
 
