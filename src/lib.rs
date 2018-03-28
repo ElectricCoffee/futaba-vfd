@@ -38,16 +38,14 @@ mod futaba_vfd {
             self.strobe()?;
             self.send(SET_INTENSITY)?;
             self.send(self.intensity)?;
-            self.clear()?;
-            Ok(())
+            self.clear()
         }
 
         // unexports all the pins
         pub fn end(&self) -> sysfs_gpio::Result<()> {
             self.clock_pin.unexport()?;
             self.data_pin.unexport()?;
-            self.strobe_pin.unexport()?;
-            Ok(())
+            self.strobe_pin.unexport()
         }
 
         // Lets the user run the display within a closure, rather than having to
