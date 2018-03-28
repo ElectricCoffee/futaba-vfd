@@ -81,7 +81,7 @@ mod futaba_vfd {
 
         pub fn send(&self, data: u8) -> sysfs_gpio::Result<()> {
             let mut mask: u8 = 0x80;
-            for i in 0 .. 8 {
+            for _ in 0 .. 8 {
                 self.clock_pin.set_value(1)?;
                 delay_micros(15);
                 self.data_pin.set_value(!!(data & mask))?;
