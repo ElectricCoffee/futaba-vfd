@@ -110,8 +110,8 @@ mod futaba_vfd {
         sleep(Duration::from_millis(time));
     }
 
-    fn delay_micros(time: u64) {
-        sleep(Duration::from_micros(time));
+    fn delay_micros(time: u32) {
+        sleep(Duration::new(0, time * 1000));
     }
 }
 
